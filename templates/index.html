@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload File</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgb(230, 230, 230, 0.7);
+            z-index: 1000;
+            text-align: center;
+        }
+        #loading-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: black;
+        }
+        #blurred-content {
+            filter: none;
+        }
+        #blurred-content.loading {
+            filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay">
+        <div id="loading-message">Please wait...</div>
+    </div>
+
+    <div id="blurred-content">
+        <h1>Upload File</h1>
+        <div id="error-message" style="color: red;"></div>
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="model">Choose a model:</label><br>
+            <input type="radio" id="gemini-1.5-flash-001" name="model" value="Gemini" checked>
+            <label for="gemini-1.5-flash-001">FORMATIX AI</label><br><br><br>
+<!--            <input type="radio" id="another-model" name="model" value="ChatGPT">-->
+<!--            <label for="another-model">ChatGPT</label><br><br>-->
+            <label for="template">Choose a Template:</label><br>
+            <select id="template" name="template">
+                <option value="template_new_1">Default Template</option>
+                <option value="template_new_2">Boyden ENG</option>
+                <option value="template_new_3">Boyden Deutsch</option>
+                <option value="template_new_4">Issoria</option>
+            </select><br><br><br>
+            <input type="file" name="file" id="file">
+            <input type="submit" value="Upload">
+        </form>
+
+        <h2>Result</h2>
+        <div id="result"></div>
+    </div>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#upload-form').on('submit', function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+
+                // Show loading overlay and blur content
+                $('#loading-overlay').show();
+                $('#blurred-content').addClass('loading');
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        $('#loading-overlay').hide();
+                        $('#blurred-content').removeClass('loading');
+                        $('#error-message').empty();
+                        console.log(data.url)
+                        $('#result').html('<a href="' + data.url + '" download>' + data.filename + '</a>');
+                    },
+                    error: function(xhr) {
+                        $('#loading-overlay').hide();
+                        $('#blurred-content').removeClass('loading');
+                        var errorMessage = xhr.responseJSON ? xhr.responseJSON.message : 'An error occurred';
+                        $('#error-message').text(errorMessage);
+                        $('#result').empty();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
